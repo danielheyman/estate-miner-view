@@ -22,7 +22,10 @@
         <div id="app">
             <div class="container is-fluid">
                 <br>
-                <div v-if="results.length == 0" class="notification">
+                <div v-if="error" class="notification is-danger">
+                    Server down. Refresh the page to try again.
+                </div>
+                <div v-else-if="results.length == 0" class="notification">
                     Scraping estates! Don't refresh the page.
                 </div>
                 <div v-else>
@@ -173,7 +176,8 @@
                 dateUpdated: null,
                 fridayChecked: null,
                 results: [],
-                viewing: null
+                viewing: null,
+                error: false
             },
             created: function() {
                 this.load();
@@ -181,7 +185,6 @@
             computed: {
                 sortedResults: function() {
                     return this.results.sort(function(a, b) {
-                        console.log(a.upsetZestimateRatio);
                         if(!a.upsetZestimateRatio) return 1;
                         if(!b.upsetZestimateRatio) return -1;
                         return a.upsetZestimateRatio - b.upsetZestimateRatio;
@@ -204,6 +207,8 @@
                                 this.viewing = hash[0];
                             }
                         }
+                    }, function(err) {
+                        this.error = true;
                     });    
                 },
                 parseRatio: function(ratio) {
