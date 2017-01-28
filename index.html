@@ -181,6 +181,9 @@
             computed: {
                 sortedResults: function() {
                     return this.results.sort(function(a, b) {
+                        console.log(a.upsetZestimateRatio);
+                        if(!a.upsetZestimateRatio) return 1;
+                        if(!b.upsetZestimateRatio) return -1;
                         return a.upsetZestimateRatio - b.upsetZestimateRatio;
                     });
                 }
