@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Estate Miner</title>
+        <script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+        <script src="https://unpkg.com/vue-resource@1.0.3/dist/vue-resource.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.3.1/css/bulma.min.css">
+        <style>
+            .viewing .title.is-4 {
+                margin-top: 1.5rem;
+                margin-bottom: 3px;
+                background: #f5f5f5;
+                padding: 5px;
+                border-radius: 5px;
+                font-size: 1.3rem;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <div class="container is-fluid">
+                <br>
+                <div v-if="results.length == 0" class="notification">
+                    Scraping estates! Don't refresh the page.
+                </div>
+                <div v-else>
+                    <div class="notification">
+                        <a class="button is-small" @click="back" v-if="viewing" style="margin-right: 5px;">Back</a> 
+                        Results for <strong>{{ fridayChecked }}</strong>. Last checked {{ dateUpdated }}.
+                        <div style="float: right;"><a @click="load(true)">Recheck</a></div>
+                    </div>
+                    
+                    <div class="viewing" v-if="viewing">
+                        <div class="columns">
+                            <div class="column">
+                                <p class="title is-4">Salesweb URL</p>
+                                <p><a :href="viewing.saleswebUrl">Link</a></p>
+                                
+                                <p class="title is-4">Sherrif #</p>
+                                <p v-text="viewing.sheriffNum"></p>
+                                
+                                <p class="title is-4">Course Case #</p>
+                                <p v-text="viewing.courtCaseNum"></p>
+                                
+                                <p class="title is-4">Sales Date</p>
+                                <p v-text="viewing.salesDate"></p>
+                                
+                                <p class="title is-4">Plaintiff</p>
+                                <p v-text="viewing.plaintiff"></p>
+                                
+                                <p class="title is-4">Defendant</p>
+                                <p v-text="viewing.defendant"></p>
+                                
+                                <p class="title is-4">Description</p>
+                                <p v-text="viewing.description"></p>
+                                
+                                <p class="title is-4">Approx. Upset</p>
+                                <p v-text="viewing.approxUpset"></p>
+                            </div>
+                            <div class="column">
+                                <p class="title is-4">Zillow ID</p>
+                                <p v-text="viewing.zpid"></p>
+                                
+                                <p class="title is-4">Zillow Url</p>
+                                <p><a :href="viewing.zillowUrl">Link</a></p>
+                                
+                                <p class="title is-4">Zillow Map URL</p>
+                                <p><a :href="viewing.zillowMapUrl">Link</a></p>
+                                
+                                <p class="title is-4">City</p>
+                                <p v-text="viewing.city"></p>
+                                
+                                <p class="title is-4">House Type</p>
+                                <p v-text="viewing.houseType"></p>
+                                
+                                <p class="title is-4">Tax Assessment Year</p>
+                                <p v-text="viewing.taxAssessmentYear"></p>
+                                
+                                <p class="title is-4">Tax Assessment</p>
+                                <p v-text="parseDollar(viewing.taxAssessment)"></p>
+                                
+                                <p class="title is-4">Year Built</p>
+                                <p v-text="viewing.yearBuilt"></p>
+                            </div>
+                            <div class="column">
+                                <p class="title is-4">Upset / Tax Assesment %</p>
+                                <p v-text="parseRatio(viewing.upsetTaxAssesmentRatio)"></p>
+                                
+                                <p class="title is-4">Upset / Zestimate %</p>
+                                <p v-text="parseRatio(viewing.upsetZestimateRatio)"></p>
+                                
+                                <p class="title is-4">Lot SqFt.</p>
+                                <p v-text="viewing.lotSizeSqFt"></p>
+                                
+                                <p class="title is-4">Finished SqFt.</p>
+                                <p v-text="viewing.finishedSqFt"></p>
+                                
+                                <p class="title is-4">Bathrooms</p>
+                                <p v-text="viewing.bathrooms"></p>
+                                
+                                <p class="title is-4">Bedrooms</p>
+                                <p v-text="viewing.bedrooms"></p>
+                                
+                                <p class="title is-4">Last Sold Date</p>
+                                <p v-text="viewing.lastSoldDate"></p>
+                                
+                                <p class="title is-4">lastSoldPrice</p>
+                                <p v-text="parseDollar(viewing.lastSoldPrice)"></p>
+                            </div>
+                            <div class="column">
+                                <p class="title is-4">Zestimate Amount</p>
+                                <p v-text="parseDollar(viewing.zestimateAmount)"></p>
+                                
+                                <p class="title is-4">Zestimate Last Updated</p>
+                                <p v-text="viewing.zestimateLastUpdated"></p>
+                                
+                                <p class="title is-4">Zestimate Valuation Low</p>
+                                <p v-text="parseDollar(viewing.zestimateValuationLow)"></p>
+                                
+                                <p class="title is-4">Zestimate Valuation High</p>
+                                <p v-text="parseDollar(viewing.zestimateValuationHigh)"></p>
+                                
+                                <p class="title is-4">Rentzestimate Amount</p>
+                                <p v-text="parseDollar(viewing.rentzestimateAmount)"></p>
+                                
+                                <p class="title is-4">Rentzestimate Last Updated</p>
+                                <p v-text="viewing.rentzestimateLastUpdated"></p>
+                                
+                                <p class="title is-4">Rentzestimate Valuation Low</p>
+                                <p v-text="parseDollar(viewing.rentzestimateValuationLow)"></p>
+                                
+                                <p class="title is-4">Rentzestimate Valuation High</p>
+                                <p v-text="parseDollar(viewing.rentzestimateValuationHigh)"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <table v-else class="table">
+                        <thead>
+                            <tr>
+                                <th>Zillow Map</th>
+                                <th>Upset/Zestimate %</th>
+                                <th>Upset/TaxAssesment %</th>
+                                <th>Upset</th>
+                                <th>ZEstimate</th>
+                                <th>ZRent</th>
+                                <th>City</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="result in sortedResults">
+                                <td><a :href="result.zillowMapUrl" target="_blank">Map</a></td>
+                                <td v-text="parseRatio(result.upsetZestimateRatio)"></td>
+                                <td v-text="parseRatio(result.upsetTaxAssesmentRatio)"></td>
+                                <td v-text="parseDollar(result.approxUpset)"></td>
+                                <td v-text="parseDollar(result.zestimateAmount)"></td>
+                                <td v-text="parseDollar(result.rentzestimateAmount)"></td>
+                                <td v-text="result.city"></td>
+                                <td @click="details(result)"><a :href="'#' + result.saleswebUrl.split('=')[1]">Details</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                dateUpdated: null,
+                fridayChecked: null,
+                results: [],
+                viewing: null
+            },
+            created: function() {
+                this.load();
+            },
+            computed: {
+                sortedResults: function() {
+                    return this.results.sort(function(a, b) {
+                        return a.upsetZestimateRatio - b.upsetZestimateRatio;
+                    });
+                }
+            },
+            methods: {
+                load: function(reload) {
+                    this.results = [];
+                    this.viewing = null;
+                    this.$http.get('http://localhost:3000/' + (reload ? 'forceReload' : '' )).then(function(response) {
+                        this.dateUpdated = response.body.dateUpdated;
+                        this.fridayChecked = response.body.fridayChecked;
+                        this.results = response.body.results;
+                        if(document.location.hash.length > 1) {
+                            var hash = this.results.filter(function(result) {
+                                return result.saleswebUrl.split('=')[1] == document.location.hash.replace('#', '');
+                            });
+                            if(hash.length == 1) {
+                                this.viewing = hash[0];
+                            }
+                        }
+                    });    
+                },
+                parseRatio: function(ratio) {
+                    if(!ratio) return '';
+                    return Math.round(ratio) + '%';
+                },
+                parseDollar: function(amount) {
+                    if(!amount) return '';
+                    amount = Math.round(amount);
+                    amount.toString().replace( /\B(?=(?:\d{3})+)$/g, "," );
+                    return "$" + amount;
+                },
+                details: function(place) {
+                    this.viewing = place;
+                },
+                back: function() {
+                    this.viewing = null;
+                    document.location.hash = '';
+                }
+            }
+        });
+        </script>
+    </body>
+</html>
