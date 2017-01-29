@@ -56,11 +56,11 @@
                                 <p class="title is-4">Defendant</p>
                                 <p v-text="viewing.defendant"></p>
                                 
+                                <p class="title is-4">Address</p>
+                                <p v-text="viewing.address"></p>
+
                                 <p class="title is-4">Description</p>
                                 <p v-text="viewing.description"></p>
-                                
-                                <p class="title is-4">Approx. Upset</p>
-                                <p v-text="viewing.approxUpset"></p>
                             </div>
                             <div class="column">
                                 <p class="title is-4">Zillow ID</p>
@@ -88,6 +88,9 @@
                                 <p v-text="viewing.yearBuilt"></p>
                             </div>
                             <div class="column">
+                                <p class="title is-4">Approx. Upset</p>
+                                <p v-text="parseDollar(viewing.approxUpset)"></p>
+                            
                                 <p class="title is-4">Upset / Tax Assesment %</p>
                                 <p v-text="parseRatio(viewing.upsetTaxAssesmentRatio)"></p>
                                 
@@ -146,7 +149,7 @@
                                 <th>Upset/Zestimate %</th>
                                 <th>Upset/TaxAssesment %</th>
                                 <th>Upset</th>
-                                <th>ZEstimate</th>
+                                <th>Zestimate</th>
                                 <th>ZRent</th>
                                 <th>City</th>
                                 <th>Details</th>
@@ -218,7 +221,7 @@
                 parseDollar: function(amount) {
                     if(!amount) return '';
                     amount = Math.round(amount);
-                    amount.toString().replace( /\B(?=(?:\d{3})+)$/g, "," );
+                    amount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
                     return "$" + amount;
                 },
                 details: function(place) {
