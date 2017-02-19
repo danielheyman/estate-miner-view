@@ -25,19 +25,26 @@
                 <div v-if="error" class="notification is-danger">
                     Server down. Refresh the page to try again.
                 </div>
-                <div v-else-if="results.length == 0" class="notification">
+                <div v-else-if="scraping" class="notification">
                     Scraping estates! Don't refresh the page.
                 </div>
                 <div v-else>
                     <div class="notification">
+                        <a class="button is-small" @click="changeCounty" v-if="!viewing" style="margin-right: 5px;">Change County</a> 
                         <a class="button is-small" @click="back" v-if="viewing" style="margin-right: 5px;">Back</a> 
-                        Results for <strong>{{ fridayChecked }}</strong>. Last checked {{ dateUpdated }}.
+                        Results for <strong>{{ fridayChecked }}</strong> (county ID: {{ countyId }}). Last checked {{ dateUpdated }}.
                         <div style="float: right;"><a @click="load(true)">Recheck</a></div>
                     </div>
                     
-                    <div class="viewing" v-if="viewing">
+                    <div v-if="results.length == 0" class="notification">
+                        No estates found :(
+                    </div>
+                    <div class="viewing" v-else-if="viewing">
                         <div class="columns">
                             <div class="column">
+                                <p class="title is-4">Status</p>
+                                <p v-text="viewing.status"></p>
+                                
                                 <p class="title is-4">Salesweb URL</p>
                                 <p><a :href="viewing.saleswebUrl">Link</a></p>
                                 
@@ -146,12 +153,13 @@
                         <thead>
                             <tr>
                                 <th>Zillow Map</th>
-                                <th>Upset/Zestimate %</th>
-                                <th>Upset/TaxAssesment %</th>
+                                <th>Upset/Zestimate</th>
+                                <th>Upset/TaxAss</th>
                                 <th>Upset</th>
                                 <th>Zestimate</th>
                                 <th>ZRent</th>
                                 <th>City</th>
+                                <th>Status</th>
                                 <th>Details</th>
                             </tr>
                         </thead>
@@ -164,7 +172,8 @@
                                 <td v-text="parseDollar(result.zestimateAmount)"></td>
                                 <td v-text="parseDollar(result.rentzestimateAmount)"></td>
                                 <td v-text="result.city"></td>
-                                <td @click="details(result)"><a :href="'#' + result.saleswebUrl.split('=')[1]">Details</a></td>
+                                <td v-text="result.status"></td>
+                                <td @click="details(result)"><a :href="'#' + result.saleswebUrl.split('=')[1] + ':' + countyId">Details</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -179,8 +188,10 @@
                 dateUpdated: null,
                 fridayChecked: null,
                 results: [],
+                scraping: true,
                 viewing: null,
-                error: false
+                error: false,
+                countyId: 7
             },
             created: function() {
                 this.load();
@@ -198,13 +209,18 @@
                 load: function(reload) {
                     this.results = [];
                     this.viewing = null;
-                    this.$http.get('http://localhost:3000/' + (reload ? 'forceReload' : '' )).then(function(response) {
+                    this.scraping = true;
+                    if(document.location.hash.length > 1 && document.location.hash.split(':').length == 2) {
+                        this.countyId = document.location.hash.split(':')[1];
+                    }
+                    this.$http.get('http://localhost:3000/' + (reload ? 'forceReload' : '' ) + '?countyId=' + this.countyId).then(function(response) {
+                        this.scraping = false;
                         this.dateUpdated = response.body.dateUpdated;
                         this.fridayChecked = response.body.fridayChecked;
                         this.results = response.body.results;
-                        if(document.location.hash.length > 1) {
+                        if(document.location.hash.length > 1 && document.location.hash.split(':').length == 2) {
                             var hash = this.results.filter(function(result) {
-                                return result.saleswebUrl.split('=')[1] == document.location.hash.replace('#', '');
+                                return result.saleswebUrl.split('=')[1] == document.location.hash.replace('#', '').split(':')[0];
                             });
                             if(hash.length == 1) {
                                 this.viewing = hash[0];
@@ -221,7 +237,7 @@
                 parseDollar: function(amount) {
                     if(!amount) return '';
                     amount = Math.round(amount);
-                    amount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+                    amount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     return "$" + amount;
                 },
                 details: function(place) {
@@ -230,6 +246,12 @@
                 back: function() {
                     this.viewing = null;
                     document.location.hash = '';
+                },
+                changeCounty: function() {
+                    var countyId = prompt("What is the new county ID?");
+                    if(!countyId) return;
+                    this.countyId = countyId;
+                    this.load();
                 }
             }
         });
