@@ -16,6 +16,22 @@
                 font-size: 1.3rem;
             }
             
+            .columns {
+                display: flex;
+            }
+            
+            @media print {
+                body {
+                    font-size: .8rem;
+                }
+                .viewing .title.is-4 {
+                    font-size: .8rem;
+                }
+                
+                .notification a {
+                    display: none;
+                }
+            }
         </style>
     </head>
     <body>
