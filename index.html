@@ -48,7 +48,7 @@
                     <div class="notification">
                         <a class="button is-small" @click="changeCounty" v-if="!viewing" style="margin-right: 5px;">Change County</a> 
                         <a class="button is-small" @click="back" v-if="viewing" style="margin-right: 5px;">Back</a> 
-                        Results for <strong>{{ fridayChecked }}</strong> (county ID: {{ countyId }}). Last checked {{ dateUpdated }}.
+                        Results for <strong>{{ dayChecked }}</strong> (county ID: {{ countyId }}). Last checked {{ dateUpdated }}.
                         <div style="float: right;"><a @click="load(true)">Recheck</a></div>
                     </div>
                     
@@ -202,7 +202,7 @@
             el: '#app',
             data: {
                 dateUpdated: null,
-                fridayChecked: null,
+                dayChecked: null,
                 results: [],
                 scraping: true,
                 viewing: null,
@@ -232,7 +232,7 @@
                     this.$http.get('http://localhost:3000/' + (reload ? 'forceReload' : '' ) + '?countyId=' + this.countyId).then(function(response) {
                         this.scraping = false;
                         this.dateUpdated = response.body.dateUpdated;
-                        this.fridayChecked = response.body.fridayChecked;
+                        this.dayChecked = response.body.dayChecked;
                         this.results = response.body.results;
                         if(document.location.hash.length > 1 && document.location.hash.split(':').length == 2) {
                             var hash = this.results.filter(function(result) {
